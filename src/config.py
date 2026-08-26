@@ -28,6 +28,7 @@ class Config:
     environment: str
     port: int
     # database_url: str
+    claude_api_key: str
 
 
 def get_config() -> Config:
@@ -42,4 +43,5 @@ def get_config() -> Config:
         environment=os.getenv("ENVIRONMENT", "development"),
         port=int(os.getenv("PORT", "8000")),
         # database_url=os.getenv("DATABASE_URL"),
+        claude_api_key=os.getenv("CLAUDE_API_KEY"),
     )
