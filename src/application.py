@@ -8,21 +8,37 @@ class Application:
         self.config = config
         self.running = False
         self.claude_client = None
+        self.messages = []
+        
+    # Add a user message to the conversation and optionally send it to Claude
+    def add_user_message(self, messages: list, message: str):
+        messages.append({
+            "role": "user",
+            "content": message
+        })
+        
+        # return self.send_message(messages)
+    
 
-    def send_message(self):
-        # if not self.claude_client:
-        #     raise RuntimeError("Claude client is not initialized")
+    # Add an assistant message to the conversation and optionally send it to Claude
+    def add_assistant_message(self, messages: list, message: str):
+        messages.append({
+            "role": "assistant",
+            "content": message
+        })
+        # return self.send_message(messages)
+
+        
+
+    def send_message(self, messages: list):
+        if not self.claude_client:
+            raise RuntimeError("Claude client is not initialized")
 
         # Send a message to the Claude API
         response = self.claude_client.messages.create(
             model="claude-sonnet-4-5-20250929",
             max_tokens=1024,
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Hello, Claude!"
-                }
-            ]
+            messages=messages
           )
         return response.content[0].text
 
@@ -33,10 +49,36 @@ class Application:
         print("Claude client initialized successfully")
 
         print("Testing sending a message to Claude...")
-        response = self.send_message()
-        print(f"Received response: {response}")
+        
+        self.add_user_message(self.messages, "Define Quantum Computing!")
+        response = self.send_message(self.messages)
+        
+        # Add the assistant's response to the conversation
+        self.add_assistant_message(self.messages, response)
+        
+        self.add_user_message(self.messages, "Write another sentence")
+        
+        response = self.send_message(self.messages)
+        
+        self.add_assistant_message(self.messages, response)
+        
+        print(f"Conversation so far: {self.messages}")
+        
+    def test_claude_with_input(self):
+        self.claude_client = Anthropic(api_key=self.config.claude_api_key)
+        
+        while True:
+            user_input = input(">: ")
+            self.add_user_message(self.messages, user_input)
+            response = self.send_message(self.messages)
+            self.add_assistant_message(self.messages, response)
+            
+            ## Print response
+            print("---")
+            print(response)
+            print("---")
 
-
+           
     def start(self):
         print(f"Starting application in {self.config.environment}")
         print(f"Listening on port {self.config.port}")
@@ -44,7 +86,10 @@ class Application:
         self.running = True
 
         # Test claude code here
-        self.test_claude()
+        # self.test_claude()
+        
+        # Test claude code with input
+        self.test_claude_with_input()
 
         # Initialize things here:
         # database
