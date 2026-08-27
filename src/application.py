@@ -1,3 +1,5 @@
+from platform import system
+
 from .config import Config
 
 from anthropic import Anthropic
@@ -29,17 +31,22 @@ class Application:
         # return self.send_message(messages)
 
         
-
-    def send_message(self, messages: list):
+    # Send a message to Claude with optional system message
+    def send_message(self, messages: list, system=  None):
+        params = {
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1024,
+            "messages": messages
+        }
+        
+        if system:
+            params["system"] = system
+        
         if not self.claude_client:
             raise RuntimeError("Claude client is not initialized")
 
         # Send a message to the Claude API
-        response = self.claude_client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=1024,
-            messages=messages
-          )
+        response = self.claude_client.messages.create(**params)
         return response.content[0].text
 
     def test_claude(self):
@@ -67,10 +74,11 @@ class Application:
     def test_claude_with_input(self):
         self.claude_client = Anthropic(api_key=self.config.claude_api_key)
         
+        system= "You are a math tutor who over explains."
         while True:
             user_input = input(">: ")
             self.add_user_message(self.messages, user_input)
-            response = self.send_message(self.messages)
+            response = self.send_message(self.messages, system)
             self.add_assistant_message(self.messages, response)
             
             ## Print response
