@@ -49,6 +49,8 @@ class Application:
         response = self.claude_client.messages.create(**params)
         return response.content[0].text
 
+
+    # Test the Claude API with predefined messages and user input
     def test_claude(self):
         print(f"Testing Claude API with key: {self.config.claude_api_key}")
         #   Initialize the Claude client with the API key
@@ -86,7 +88,31 @@ class Application:
             print(response)
             print("---")
 
-           
+    # Test streaming responses from Claude
+    def test_response_streaming(self):
+        self.claude_client = Anthropic(api_key=self.config.claude_api_key)
+        
+        self.add_user_message(self.messages, "Write 1 sentence about the importance of AI")
+        
+        params = {
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1024,
+            "messages": self.messages,
+            # "stream": True,
+        }
+        # stream = self.claude_client.messages.create(**params)
+        # for event in stream:
+        #         print(event)
+        with self.claude_client.messages.stream(**params) as stream:
+            for text in stream.text_stream:
+                # print(text, end="")
+                pass
+        
+        message = stream.get_final_message()
+        
+        print(f"Final message: {message}")
+
+                
     def start(self):
         print(f"Starting application in {self.config.environment}")
         print(f"Listening on port {self.config.port}")
@@ -97,7 +123,10 @@ class Application:
         # self.test_claude()
         
         # Test claude code with input
-        self.test_claude_with_input()
+        # self.test_claude_with_input()
+        
+        # Test streaming responses from Claude
+        self.test_response_streaming()
 
         # Initialize things here:
         # database
